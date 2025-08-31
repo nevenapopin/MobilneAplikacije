@@ -1,0 +1,73 @@
+1. Postavljanje strukture projekta i aktivnosti
+
+Kreirala sam novi projekat Kolokvijum1 sa jednom glavnom aktivnošću (MainActivity).
+
+Aktivnost je podeljena na dva fragmenta: FirstFragment (gornja polovina) i SecondFragment (donja polovina).
+
+Fragmenti su postavljeni u ConstraintLayout tako da zauzimaju po pola ekrana.
+
+2. SharedPreferences inicijalizacija
+
+U MainActivity (ili na početku rada aplikacije) sam upisala vrednost "Zdravo" u SharedPreferences pod ključem "inicijalno".
+
+Ovaj podatak služi kao podrazumevani tekst koji koristim u drugim delovima aplikacije.
+
+3. FirstFragment - Dva dugmeta sa specifičnim ponašanjem
+
+Postavila sam dva dugmeta sa sledećim osobinama:
+
+Prvo dugme: tekst “Proveri”, zelene boje, zauzima 75% širine, i inicijalno je neaktivno (ne može da se klikne).
+
+Drugo dugme: tekst “Ispiši”, zauzima 25% širine.
+
+Implementirala sam logiku da se klikom na prvo dugme ono deaktivira, a drugo dugme postaje aktivno, i obrnuto.
+
+Takođe, kliktanje je moguće samo ako je dugme aktivno.
+
+4. Prikaz podataka putem Toast poruke
+
+Klikom na dugme “Ispiši”:
+
+Proveravam da li postoji korisnik sačuvan u bazi.
+
+Ako baza nema korisnika, prikazujem vrednost iz SharedPreferences.
+
+Ako je korisnik iz baze isti kao vrednost iz SharedPreferences, nakon Toast poruke prikazujem još i dodatnu poruku sa tekstom "Zdravo".
+
+5. Baza podataka i model
+
+Kreirala sam SQLite bazu podataka sa tabelom Korisnik koja sadrži samo jedno polje ime.
+
+Implementirala sam metode za:
+
+Ubacivanje novog korisnika.
+
+Dohvatanje poslednjeg korisnika iz baze.
+
+Dohvatanje svih korisnika.
+
+6. SecondFragment - unos imena i provera dozvole
+
+U drugom fragmentu postavila sam EditText polje za unos imena i dugme “Sačuvaj”.
+
+Klikom na “Sačuvaj” proveravam da li je aplikaciji dozvoljeno korišćenje lokacije.
+
+Ako nije dozvoljeno, tražim dozvolu od korisnika.
+
+Ako korisnik odbije dozvolu, upisujem ime iz EditText u SharedPreferences i otvaram novu aktivnost (SecondActivity) sa porukom "Nema dozvole".
+
+Ako je dozvola odobrena, ime se ubacuje u bazu.
+
+7. SecondActivity
+
+Nova aktivnost koja se otvara u slučaju odbijene dozvole.
+
+Sadrži samo centralni TextView sa porukom "Nema dozvole".
+
+8. Zaključak
+
+Projekat demonstrira rad sa fragmentima, bazom podataka, SharedPreferences i Android-ovim sistemom za dozvole.
+
+Implementirana je logika izmene interfejsa u zavisnosti od korisničkih akcija i dozvola.
+
+Ovo pokazuje razumevanje osnovnih komponenti Android aplikacije i kako međusobno komuniciraju.
