@@ -50,5 +50,4 @@ layout/
 * activity_main.xml: Definiše raspored elemenata za MainActivity, odnosno kako su FirstFragment i SecondFragment postavljeni.
 * fragment_first.xml: Definiše raspored za FirstFragment (Checkbox i Switch).
 * fragment_second.xml: Definiše raspored za SecondFragment (EditText i Button).
-values/
-* strings.xml: Sadrži tekstualne resurse aplikacije, kao što je ime aplikacije.
+
