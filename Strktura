@@ -1,0 +1,54 @@
+Kolokvijum1/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/example/kolokvijum1/
+│   │   │   │   ├── MainActivity.java      (Glavna aktivnost, hostuje fragmente)
+│   │   │   │   ├── FirstFragment.java     (Gornji fragment, sadrži Checkbox i Switch)
+│   │   │   │   ├── SecondFragment.java    (Donji fragment, zelena pozadina, EditText i Button)
+│   │   │   │   ├── MyService.java         (Servis koji se pokreće/zaustavlja Checkbox-om, proverava Wi-Fi)
+│   │   │   │   └── WifiReceiver.java      (BroadcastReceiver koji prima informacije o Wi-Fi-ju i šalje notifikacije)
+│   │   │   ├── res/
+│   │   │   │   ├── layout/
+│   │   │   │   │   ├── activity_main.xml  (Layout za glavnu aktivnost, definiše mesta za fragmente)
+│   │   │   │   │   ├── fragment_first.xml (Layout za FirstFragment, sadrži Checkbox i Switch)
+│   │   │   │   │   └── fragment_second.xml(Layout za SecondFragment, sadrži EditText i Button)
+│   │   │   │   ├── values/
+│   │   │   │   │   └── strings.xml        (Definicije stringova, npr. ime aplikacije)
+│   │   │   │   └── AndroidManifest.xml    (Manifest fajl: dozvole, deklaracije aktivnosti, servisa, risivera)
+
+
+1. AndroidManifest.xml
+Lokacija: app/src/main/AndroidManifest.xml
+Uloga: Ovo je konfiguracioni fajl za celu aplikaciju. On deklariše:
+* Sve komponente aplikacije: MainActivity (aktivnost), MyService (servis), WifiReceiver (broadcast receiver).
+* Potrebne dozvole (<uses-permission>) koje aplikacija mora da ima, npr. za proveru Wi-Fi statusa (ACCESS_NETWORK_STATE), pristup internetu (INTERNET) i prikazivanje notifikacija (POST_NOTIFICATIONS).
+* intent-filter-e koji govore sistemu na koje namere (intents) određene komponente reaguju.
+2. java/com/example/kolokvijum1/ (Paket sa Java kodom)
+MainActivity.java
+* Uloga: Glavna aktivnost aplikacije. Njen layout (activity_main.xml) služi kao "kontejner" za dva fragmenta. Sama MainActivity nema mnogo logike; njen primarni zadatak je da prikaže FirstFragment i SecondFragment.
+FirstFragment.java
+* Uloga: Kontroliše UI i logiku gornjeg fragmenta. Sadrži:
+CheckBox: Čekiranjem/odčekiranjem pokreće/zaustavlja MyService.
+Switch: Klikom na njega, proverava trenutni Wi-Fi status i tu informaciju (true ili false) čuva u SharedPreferences.
+SecondFragment.java
+* Uloga: Kontroliše UI i logiku donjeg fragmenta. Sadrži:
+EditText: Polje za unos teksta.
+Button ("Pošalji Notifikaciju"): Klikom na dugme, uzima tekst iz EditText polja i šalje Android notifikaciju sa tim tekstom koristeći drugi kanal za notifikacije. Takođe, kreira taj drugi kanal.
+MyService.java
+* Uloga: Pozadinski servis koji se pokreće kada se čekira CheckBox u FirstFragment-u.
+* Koristi Handler i Runnable da na svakih 10 sekundi pošalje eksplicitni Broadcast (ACTION_CHECK_WIFI) u sistem.
+* Takođe, kreira prvi kanal za notifikacije koji će WifiReceiver koristiti.
+WifiReceiver.java
+* Uloga: BroadcastReceiver koji "sluša" specifičan Broadcast Intent (definisan kao ACTION_CHECK_WIFI) poslat od MyService-a.
+* Kada primi taj Intent, proverava trenutni status Wi-Fi konekcije.
+* Na osnovu Wi-Fi statusa, šalje notifikaciju putem prvog kanala:
+"Sve je u redu!" (ako je Wi-Fi uključen).
+"Uključi Wi-Fi!" sa akcionim dugmetom koje otvara Wi-Fi podešavanja (ako Wi-Fi nije uključen).
+3. res/ (Resursi)
+layout/
+* activity_main.xml: Definiše raspored elemenata za MainActivity, odnosno kako su FirstFragment i SecondFragment postavljeni.
+* fragment_first.xml: Definiše raspored za FirstFragment (Checkbox i Switch).
+* fragment_second.xml: Definiše raspored za SecondFragment (EditText i Button).
+values/
+* strings.xml: Sadrži tekstualne resurse aplikacije, kao što je ime aplikacije.
