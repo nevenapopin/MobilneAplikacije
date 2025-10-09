@@ -1,3 +1,1 @@
-da/ne
-m:
-n:
+struktura fajl!!!!
