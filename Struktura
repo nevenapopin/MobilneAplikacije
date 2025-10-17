@@ -1,0 +1,57 @@
+Kolokvijum2/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── AndroidManifest.xml         // Menjan: Dodate dozvole (CAMERA, ACCESS_FINE_LOCATION, INTERNET)
+│   │   │   ├── java/
+│   │   │   │   └── com/example/kolokvijum2/ // Vaš Java paket
+│   │   │   │       └── MainActivity.java   // Menjan: Glavna logika aplikacije, UI interakcije, Retrofit, Lokacija, Kamera, Zvuk
+│   │   │   ├── res/                        // Resursi aplikacije
+│   │   │   │   ├── drawable/               // Dodato/Menjano: Slike, ikone, XML drawables
+│   │   │   │   │   └── default_image.xml   // Dodat: XML definicija za default_image
+│   │   │   │   ├── layout/                 // XML fajlovi za korisnički interfejs
+│   │   │   │   │   └── activity_main.xml   // Menjan: Dodati EditText, ImageView, Checkbox
+│   │   │   │   ├── raw/                    // Sirovi resursi
+│   │   │   │   │   └── sound_file.mp3      // Dodat: Audio fajl za reprodukciju (treba ručno dodati)
+│   ├── build.gradle                        // Menjan: Dodate Retrofit i Gson zavisnosti
+
+
+
+MAIN ACTIVIY
+"Ovo je glavna klasa naše Android aplikacije, MainActivity, koja predstavlja jedan ekran. Ona sadrži svu logiku za interakciju sa korisnikom, upravljanje UI elementima, pristup hardveru uređaja (kamera, lokacija) i komunikaciju sa internetom (Retrofit)."
+Evo detaljnijeg objašnjenja po funkcionalnostima:
+1. Uvozi (Imports) i Deklaracije:
+Šta radi: Na početku fajla se uvoze sve potrebne klase iz Android SDK-a i eksternih biblioteka (kao što je Retrofit). Zatim se deklarišu globalne promenljive za UI elemente (EditText, ImageView, CheckBox) i sistemske servise (LocationManager, MediaPlayer).
+Zašto: Uvozi su neophodni da bismo koristili funkcionalnosti iz drugih delova Android platforme. Deklaracije omogućavaju da se UI elementi i servisi koriste i manipulišu u celoj aktivnosti.
+2. Retrofit Interfejs (JsonPlaceHolderApi) i Model (Comment):
+Šta radi: Definisali smo Java interfejs JsonPlaceHolderApi koji Retrofit koristi da bi znao kako da komunicira sa web servisom. Unutar tog interfejsa, @GET("comments") anotacija govori Retrofitu da pošalje GET zahtev na specifičnu putanju. Takođe, definisana je Comment Java klasa koja služi kao model za podatke koje očekujemo u JSON formatu od servera.
+Zašto: Retrofit je biblioteka koja pojednostavljuje slanje HTTP zahteva i obradu odgovora. Interfejs opisuje API, dok model klasa omogućava automatsko prevođenje JSON odgovora u Java objekte, što znatno olakšava rad sa podacima sa servera.
+3. Metoda onCreate():
+Šta radi: Ovo je prva metoda koja se poziva kada se aktivnost kreira. Ovde se postavlja layout (vizuelni izgled) aktivnosti, povezuju se Java promenljive sa UI elementima iz XML-a, inicijalizuju se sistemski servisi i postavljaju slušači (listeners) za korisničke interakcije.
+Zašto: onCreate() je centralno mesto za inicijalizaciju. Svi UI elementi moraju biti povezani da bi se njima moglo manipulisati, a servisi moraju biti inicijalizovani pre upotrebe.
+4. Rukovanje dozvolama (Kamera i Lokacija):
+Šta radi: Aplikacija aktivno proverava da li ima dozvole za pristup lokaciji i kameri. Ako ih nema, koristi se ActivityCompat.requestPermissions() da bi se od korisnika zatražile te dozvole u toku izvršavanja aplikacije. Metoda onRequestPermissionsResult() zatim obrađuje odgovor korisnika (da li je dozvola odobrena ili odbijena).
+Zašto: Android zahteva od aplikacija da eksplicitno traže dozvole za pristup osetljivim funkcijama uređaja (kao što su lokacija i kamera) u toku rada aplikacije, pružajući korisniku kontrolu nad svojim podacima i privatnošću.
+5. Praćenje unosa u prvom EditText polju (editText1):
+Šta radi: Koristi se TextWatcher koji "sluša" svaku promenu teksta koju korisnik unese u editText1.
+Zašto:
+Pokretanje kamere: Kada korisnik unese reč "kamera", aplikacija proverava dozvolu, a zatim pokreće sistemsku aplikaciju kamere. Snimljena fotografija se automatski prikazuje u ImageView komponenti.
+Automatsko čekiranje CheckBox-a: Ako korisnik unese tekst koji ima tačno 5 karaktera, CheckBox se automatski čekira.
+Prikaz default slike: Ako uneti tekst ima više od 5 karaktera, ImageView se vraća na prikaz predefinisane (default) slike.
+6. Lokacioni servisi:
+Šta radi: Metoda requestLocationUpdates() koristi LocationManager za dobijanje trenutnih geografskih koordinata (širina i dužina) uređaja, koristeći GPS ili mrežne provajdere. Ovi podaci se zatim prikazuju u drugom EditText polju (editText2). Aktivnost implementira LocationListener da bi primala obaveštenja o promenama lokacije.
+Zašto: Ova funkcionalnost demonstrira kako se pristupa lokacionim podacima uređaja i kako se oni prikazuju u korisničkom interfejsu.
+7. Logika CheckBox-a:
+Šta radi: OnCheckedChangeListener detektuje kada korisnik čekira ili odčeka CheckBox.
+Zašto:
+Kada se čekira: Pokreću se dve akcije: aplikacija šalje mrežni zahtev (preko Retrofita) da preuzme email trećeg komentara sa jsonplaceholder.typicode.com i taj email prikazuje u editText2. Istovremeno, počinje da reprodukuje zvuk u pozadini, koji se ponavlja.
+Kada se odčeka: Reprodukcija zvuka se zaustavlja, a editText2 se ponovo popunjava podacima o trenutnoj lokaciji, čime se vraća na prethodno stanje.
+8. Mrežna komunikacija sa Retrofitom (fetchCommentEmail()):
+Šta radi: Metoda fetchCommentEmail() konfiguriše Retrofit biblioteku sa baznim URL-om i JSON konverterom (Gson). Zatim šalje asinhroni (pozadinski) HTTP GET zahtev na server. Kada stigne odgovor, on se parsira u listu Comment objekata, i email trećeg komentara iz te liste se izvlači i prikazuje u editText2.
+Zašto: Demonstrira se kako aplikacija može efikasno da komunicira sa eksternim web servisima, preuzima i obrađuje podatke sa interneta bez blokiranja korisničkog interfejsa.
+9. Reprodukcija zvuka (startSound() i stopSound()):
+Šta radi: Metoda startSound() koristi MediaPlayer da učita i reprodukuje audio fajl (sound_file.mp3) koji je sačuvan u res/raw resursima aplikacije, postavljajući ga na ponavljanje. Metoda stopSound() zaustavlja reprodukciju i oslobađa resurse MediaPlayer-a.
+Zašto: Pokazuje se kako se integrira multimedijalni sadržaj (audio) i kako se njime upravlja unutar aplikacije.
+10. Oslobađanje resursa (onDestroy()):
+Šta radi: Metoda onDestroy() se poziva kada se aktivnost konačno uništava. U njoj se oslobađaju svi resursi koje je aktivnost zauzela, kao što su MediaPlayer i LocationManager.
+Zašto: Ovo je ključno za dobro upravljanje memorijom i performansama aplikacije. Oslobađanje resursa sprečava curenje memorije i osigurava da uređaj ne troši bateriju ili procesorsko vreme na nešto što više nije potrebno.
