@@ -1,0 +1,30 @@
+potrebno je:
+1. Dodaj default sliku:
+Kreiraj novu Drawable resource datoteku- drawable-new-drawable resouce file (npr. default_image.xml u res/drawable) ili jednostavno prebaci neku sliku (npr. default_image.png) u res/drawable folder. Ako želiš jednostavan kvadrat kao placeholder:
+res/drawable/default_image.xml:
+Xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#CCCCCC"/>
+    <size android:width="200dp" android:height="200dp"/>
+    <stroke android:color="#000000" android:width="1dp"/>
+</shape>
+
+2.U app/src/main/res kreiraj novi folder po imenu raw. On se kreira desni klik na res zatim new zatim android resource directory.
+Prebaci neku *.mp3 ili *.wav audio datoteku u taj raw folder. Važno: Naziv fajla mora biti malim slovima i bez specijalnih karaktera (npr. sound_file.mp3).
+U MainActivity.java sam već koristio R.raw.sound_file Ovako je nazvano u main activity. Ako se tvoj audio fajl zove drugačije, promeni to.
+3. NAJVAZNIJE: Otvori Gradle Scripts - build.gradle (Module: app) i dodaj sledeće zavisnosti unutar dependencies { ... } bloka:
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+} samo ovo zameni umesto tog starog dependecija
+OBAVEZNO KLIKNI Sync Now dugme u gornjem desnom uglu da sinhronizujes projekat.
