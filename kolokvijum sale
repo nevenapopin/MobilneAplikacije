@@ -301,7 +301,7 @@ Resursi: Desni klik na res folder -> New -> Android Resource Directory -> izaber
 Permisije: Na API 30, kada pokreneš aplikaciju, moraćeš ručno u podešavanjima telefona/emulatora da dozvoliš "Location" i "Camera" ako ti sistem ne izbaci automatski popup (mada je kod za lokaciju uključen).
 Kamera: onActivityResult na novijim verzijama vraća samo "thumbnail" (malu sliku). Za potrebe kolokvijuma ovo je u 99% slučajeva dovoljno.
 Retrofit: Proveri da li ti je emulator povezan na internet.
-Za build gradle ovo staro ostavis i samo dodas jos dependecies (evo komplet koda ovako otprilke da izgleda)
+Za build gradle ovo staro ostavis i samo dodas jos dependecies (evo komplet koda ovako otprilke da izgleda nisam sigurna samo uglavnom to dodajes) i OBAVEZNO KLIKNI Sync Now dugme u gornjem desnom uglu da sinhronizujes projekat.
 plugins {
     id 'com.android.application'
 }
