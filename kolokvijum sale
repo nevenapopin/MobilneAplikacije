@@ -1,0 +1,337 @@
+1. Struktura projekta:
+Kolokvijum2/
+├── app/
+│   ├── manifests/
+│   │   └── AndroidManifest.xml
+│   ├── java/com.example.kolokvijum2/
+│   │   ├── MainActivity.java
+│   │   ├── Comment.java (Model)
+│   │   ├── ApiService.java (Interface)
+│   │   └── RetrofitClient.java
+│   ├── res/
+│   │   ├── layout/
+│   │   │   └── activity_main.xml
+│   │   ├── raw/
+│   │   │   └── zvuk.mp3 (ovde ubaci bilo koji mp3 fajl)
+│   └── build.gradle (Module: app)
+
+2. Podešavanje build.gradle (Module: app)
+
+dependencies {
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    // Location
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+}
+
+3. AndroidManifest.xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.kolokvijum2">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application ... >
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+
+
+4. Layout: activity_main.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editText1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Unesite 'kamera' ili broj ID-a" />
+
+    <EditText
+        android:id="@+id/editText2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Rezultat" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:background="#EEE" />
+
+    <CheckBox
+        android:id="@+id/checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Aktiviraj funkcije / Zvuk" />
+
+    <Switch
+        android:id="@+id/switchRepeat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Repeat Zvuk" />
+
+</LinearLayout>
+
+
+
+5. Comment.java
+
+public class Comment {
+    private int id;
+    private String body;
+    // Getteri
+    public int getId() { return id; }
+    public String getBody() { return body; }
+}
+
+
+6. ApiService.java
+
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+
+public interface ApiService {
+    @GET("comments/{id}")
+    Call<Comment> getCommentById(@Path("id") int id);
+}
+
+
+7. RetrofitClient.java
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson:GsonConverterFactory;
+
+public class RetrofitClient {
+    private static Retrofit retrofit;
+    public static Retrofit getClient() {
+        if (retrofit == null) {
+            retrofit = new Retrofit.Builder()
+                    .baseUrl("https://jsonplaceholder.typicode.com/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return retrofit;
+    }
+}
+
+
+8. MainActivity.java
+
+package com.example.kolokvijum2;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.*;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+
+    EditText et1, et2;
+    ImageView imgView;
+    CheckBox checkBox;
+    Switch aSwitch;
+    
+    MediaPlayer mediaPlayer;
+    int checkCount = 0;
+    
+    // Senzori i Lokacija
+    SensorManager sensorManager;
+    Sensor accelerometer;
+    FusedLocationProviderClient fusedLocationClient;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        et1 = findViewById(R.id.editText1);
+        et2 = findViewById(R.id.editText2);
+        imgView = findViewById(R.id.imageView);
+        checkBox = findViewById(R.id.checkBox);
+        aSwitch = findViewById(R.id.switchRepeat);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        // 3 i 7. TextWatcher za EditText1
+        et1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String input = s.toString().toLowerCase();
+                
+                if (input.equals("kamera")) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(intent, 100);
+                } else if (input.matches("\\d+")) { // Ako je broj
+                    fetchComment(Integer.parseInt(input));
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // 4, 5, 8 i 9. Checkbox listener
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                checkCount++;
+                playSound();
+
+                if (checkCount == 2) {
+                    showLocation();
+                } else if (checkCount == 3) {
+                    sensorManager.registerListener(MainActivity.this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+                }
+            } else {
+                stopSound();
+                sensorManager.unregisterListener(MainActivity.this);
+            }
+        });
+    }
+
+    // 3. Prikaz slike iz kamere
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100 && resultCode == RESULT_OK && data != null) {
+            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+            imgView.setImageBitmap(bitmap);
+        }
+    }
+
+    // 4 i 5. Upravljanje zvukom
+    private void playSound() {
+        stopSound(); // Ugasi prethodni ako postoji
+        mediaPlayer = MediaPlayer.create(this, R.raw.zvuk); // Stavi bilo koji mp3 u res/raw
+        mediaPlayer.setLooping(aSwitch.isChecked());
+        mediaPlayer.start();
+    }
+
+    private void stopSound() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    // 7. Retrofit Fetch
+    private void fetchComment(int id) {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.getCommentById(id).enqueue(new Callback<Comment>() {
+            @Override
+            public void onResponse(Call<Comment> call, Response<Comment> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    et2.setText(response.body().getBody());
+                }
+            }
+            @Override
+            public void onFailure(Call<Comment> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Greška: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // 8. Lokacija
+    private void showLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return;
+        }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null) {
+                et2.setText("Lokacija: Lat " + location.getLatitude() + ", Lon " + location.getLongitude());
+            }
+        });
+    }
+
+    // 9. Akcelerometar
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (checkBox.isChecked() && checkCount == 3) {
+            et2.setText("X: " + event.values[0] + "\nY: " + event.values[1] + "\nZ: " + event.values[2]);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+}
+Napomene za rad:
+Resursi: Desni klik na res folder -> New -> Android Resource Directory -> izaberi raw. Tu ubaci jedan .mp3 fajl i nazovi ga zvuk.mp3.
+Permisije: Na API 30, kada pokreneš aplikaciju, moraćeš ručno u podešavanjima telefona/emulatora da dozvoliš "Location" i "Camera" ako ti sistem ne izbaci automatski popup (mada je kod za lokaciju uključen).
+Kamera: onActivityResult na novijim verzijama vraća samo "thumbnail" (malu sliku). Za potrebe kolokvijuma ovo je u 99% slučajeva dovoljno.
+Retrofit: Proveri da li ti je emulator povezan na internet.
+
+objasnjenje:
+1. Struktura Projekta i Resursi
+Projekat je kreiran kao Empty Activity aplikacija sa minimalnim API nivoom 30 (Android 11). Pored programskog koda, struktura obuhvata i folder res/raw u kojem se nalazi audio fajl za reprodukciju zvuka, kao i standardni layout folder sa XML definicijom korisničkog interfejsa.
+2. Manifest i Dozvole (AndroidManifest.xml)
+U manifestu su deklarisane tri ključne dozvole:
+INTERNET: Neophodna za rad Retrofit biblioteke i preuzimanje podataka sa eksternog sajta.
+CAMERA: Dozvola za pristup hardveru kamere.
+ACCESS_FINE_LOCATION: Dozvola za precizno određivanje lokacije korisnika putem GPS-a.
+Pošto radimo na API 30, ove dozvole (osim interneta) zahtevaju i dodatnu proveru u samom kodu tokom rada aplikacije (Runtime Permissions).
+3. Korisnički Interfejs (activity_main.xml)
+Interfejs je organizovan pomoću LinearLayout-a (vertikalna orijentacija). Sadrži:
+Dva EditText polja: Prvo služi za unos komandi ("kamera" ili broj ID-a), a drugo za prikaz rezultata (tekst komentara, lokacija ili podaci senzora).
+ImageView: Služi za prikaz fotografije snimljene kamerom.
+CheckBox: Glavni okidač za zvuk, ali i za napredne funkcije (lokacija i akcelerometar) pri višestrukim klikovima.
+Switch: Kontroliše modalitet rada plejera (da li se zvuk ponavlja beskonačno ili se pušta samo jednom).
+4. Model Podataka (Comment.java)
+Ovo je klasa modela (tzv. POJO klasa). Ona definiše strukturu podataka koju očekujemo sa sajta jsonplaceholder. Sadrži polja id i body. Ova polja služe kao "kalup" u koji Retrofit automatski smešta tekstualne podatke preuzete sa interneta, pretvarajući JSON format u Java objekte.
+5. API Interfejs (ApiService.java)
+Ovaj interfejs služi za definisanje HTTP zahteva. Koristi Retrofit anotaciju @GET sa putanjom koja sadrži dinamički parametar {id}. Metoda unutar interfejsa prima taj ID i vraća Call objekat koji u sebi nosi naš model komentara. Ovo je nivo na kojem definišemo "šta" želimo da dobijemo sa servera.
+6. Retrofit Konfiguracija (RetrofitClient.java)
+Ovo je tehnička klasa koja koristi Singleton obrazac (osigurava da postoji samo jedna instanca klijenta). Ovde se definiše Base URL (osnovna adresa sajta) i dodaje se GsonConverterFactory. Konverter je ključan jer on obavlja "prevodilački" posao – uzima sirovi tekst sa veba i pakuje ga u polja naše Comment klase.
+7. Glavna Logika (MainActivity.java)
+Ovo je mozak aplikacije gde se povezuju svi elementi. Logika je podeljena na nekoliko celina:
+Praćenje unosa (TextWatcher): Aplikacija u realnom vremenu osluškuje šta korisnik kuca u prvi EditText. Ako se ukuca reč "kamera", šalje se Implicitni Intent sistemu za otvaranje kamere. Ako se ukuca broj, aktivira se Retrofit i šalje se mrežni zahtev za preuzimanje komentara.
+Upravljanje zvukom (MediaPlayer): Kada se CheckBox čekira, instancira se MediaPlayer. Logika proverava stanje Switch-a – ako je uključen, aktivira se opcija setLooping(true), u suprotnom zvuk se gasi nakon jednog puštanja. Kada se CheckBox odčekira, zvuk se momentalno zaustavlja i resursi se oslobađaju.
+Logika višestrukog kliktanja (Counter): Uvedena je pomoćna promenljiva (brojač) koja prati koliko puta je CheckBox aktiviran.
+Pri drugom aktiviranju, aplikacija poziva servise lokacije (FusedLocationProviderClient) i ispisuje koordinate u drugi EditText.
+Pri trećem aktiviranju, aktivira se SensorManager koji registruje podatke sa Akcelerometra.
+Rad sa Senzorima (SensorEventListener): Klasa implementira ovaj interfejs kako bi mogla da obrađuje promene u pokretu telefona. Podaci sa X, Y i Z osa se u realnom vremenu ispisuju u drugi EditText dokle god je CheckBox aktivan.
+Obrada rezultata kamere (onActivityResult): Nakon što korisnik uslika sliku, sistem se vraća u aplikaciju. Ovde se preuzima "thumbnail" (umanjeni prikaz) slike iz Intent podataka i postavlja se u ImageView.
+8. Zaključak i dobre prakse
+Aplikacija je dizajnirana tako da štedi resurse: senzori se gase kada CheckBox nije aktivan, a mrežni pozivi se obavljaju asinhrono (u pozadini), čime se sprečava zamrzavanje korisničkog interfejsa. Sve radnje su automatizovane i ne zahtevaju pritiskanje dodatnih dugmića, već reaguju direktno na promenu stanja komponenti.
+
